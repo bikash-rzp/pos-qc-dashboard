@@ -1,22 +1,23 @@
 import React from "react";
 import QCDashboard from "../components/QCDashboard/QCDashboard";
+import { Box, Heading } from "@razorpay/blade/components";
 
 const Index: React.FC = () => {
   return (
-    <div className="bg-gray-100 min-h-screen">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-2xl font-bold text-gray-900">
+    <Box backgroundColor="surface.background.gray.subtle">
+      <Box backgroundColor="surface.background.gray.subtle" elevation="lowRaised">
+        <Box maxWidth="1280px" marginX="auto" paddingY="spacing.4" paddingX="spacing.4">
+          <Heading size="xlarge">
             QC Device Insight Board
-          </h1>
-        </div>
-      </header>
-      <main>
-        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          </Heading>
+        </Box>
+      </Box>
+      <Box>
+        <Box maxWidth="1280px" marginX="auto" paddingY="spacing.6" paddingX={{ base: "spacing.4", s: "spacing.6", l: "spacing.8" }}>
           <QCDashboard />
-        </div>
-      </main>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

@@ -8,6 +8,7 @@ import {
   paginateData,
 } from "../../utils/mockData";
 import { exportToCSV, exportToPDF } from "../../utils/export";
+import { Box, Spinner, Text, Button } from "@razorpay/blade/components";
 
 const QCDashboard: React.FC = () => {
   const [reports, setReports] = useState<QCReport[]>([]);
@@ -86,8 +87,13 @@ const QCDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-6 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <Box
+      minHeight="100vh"
+      backgroundColor="surface.background.gray.subtle"
+      paddingY="spacing.6"
+      paddingX="spacing.4"
+    >
+      <Box maxWidth="1280px" marginX="auto">
         <QCDashboardHeader
           onExportCSV={handleExportCSV}
           onExportPDF={handleExportPDF}
@@ -96,36 +102,41 @@ const QCDashboard: React.FC = () => {
         />
 
         {isLoading ? (
-          <div className="bg-white shadow rounded-lg p-8 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-4"></div>
-            <p className="text-lg text-gray-600">Loading QC reports...</p>
-          </div>
+          <Box
+            backgroundColor="surface.background.gray.subtle"
+            elevation="lowRaised"
+            borderRadius="medium"
+            padding="spacing.8"
+            textAlign="center"
+          >
+            <Spinner
+              size="medium"
+              color="primary"
+              accessibilityLabel="Loading"
+              marginBottom="spacing.4"
+            />
+            <Text size="medium">Loading QC reports...</Text>
+          </Box>
         ) : (
           <>
             {filteredReports.length === 0 ? (
-              <div className="bg-white shadow rounded-lg p-8 text-center">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <h3 className="mt-2 text-lg font-medium text-gray-900">
+              <Box
+                backgroundColor="surface.background.gray.subtle"
+                elevation="lowRaised"
+                borderRadius="medium"
+                padding="spacing.8"
+                textAlign="center"
+              >
+                <Box marginBottom="spacing.3" />
+                <Text size="large" weight="medium" marginBottom="spacing.2">
                   No results found
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
+                </Text>
+                <Text size="small" marginBottom="spacing.6">
                   Try adjusting your search or filter to find what you're
                   looking for.
-                </p>
-                <div className="mt-6">
-                  <button
+                </Text>
+                <Box textAlign="center">
+                  <Button
                     onClick={() =>
                       setFilterOptions({
                         status: "",
@@ -136,12 +147,12 @@ const QCDashboard: React.FC = () => {
                         },
                       })
                     }
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    variant="primary"
                   >
                     Clear Filters
-                  </button>
-                </div>
-              </div>
+                  </Button>
+                </Box>
+              </Box>
             ) : (
               <QCTable
                 data={currentPageData}
@@ -153,8 +164,8 @@ const QCDashboard: React.FC = () => {
             )}
           </>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

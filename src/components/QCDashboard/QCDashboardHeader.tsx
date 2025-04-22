@@ -1,5 +1,6 @@
 import React from "react";
 import { FilterOptions } from "../../types/qc";
+import { Box, Heading, Button, TextInput } from "@razorpay/blade/components";
 
 interface QCDashboardHeaderProps {
   onExportCSV: () => void;
@@ -57,136 +58,126 @@ const QCDashboardHeader: React.FC<QCDashboardHeaderProps> = ({
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-4 mb-6">
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4 sm:mb-0">
+    <Box
+      backgroundColor="surface.background.gray.subtle"
+      elevation="lowRaised"
+      borderRadius="medium"
+      padding="spacing.4"
+      marginBottom="spacing.6"
+    >
+      <Box
+        display="flex"
+        flexDirection={{ base: "column", s: "row" }}
+        justifyContent="space-between"
+        alignItems={{ base: "flex-start", s: "center" }}
+        marginBottom="spacing.6"
+      >
+        <Heading
+          size="xlarge"
+          marginBottom={{ base: "spacing.4", s: "spacing.0" }}
+        >
           POS Device QC Dashboard
-        </h1>
+        </Heading>
 
-        <div className="flex space-x-3">
-          <button
-            onClick={onExportCSV}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded flex items-center"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-              />
-            </svg>
+        <Box display="flex" gap="spacing.3">
+          <Button variant="primary" onClick={onExportCSV}>
             Export CSV
-          </button>
-          <button
-            onClick={onExportPDF}
-            className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded flex items-center"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-              />
-            </svg>
+          </Button>
+          <Button variant="primary" onClick={onExportPDF}>
             Export PDF
-          </button>
-        </div>
-      </div>
+          </Button>
+        </Box>
+      </Box>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div>
-          <label
-            htmlFor="search"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+      <Box
+        display="grid"
+        gridTemplateColumns={{ base: "1fr", m: "repeat(4, 1fr)" }}
+        gap="spacing.4"
+      >
+        <Box>
+          <Box as="label" marginBottom="spacing.1" display="block">
             Search Serial Number
-          </label>
+          </Box>
           <input
             type="text"
             id="search"
             value={filterOptions.searchTerm || ""}
             onChange={handleSearchChange}
             placeholder="Enter serial number..."
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            style={{
+              padding: "8px 12px",
+              borderRadius: "4px",
+              border: "1px solid #ddd",
+              width: "100%",
+            }}
           />
-        </div>
+        </Box>
 
-        <div>
-          <label
-            htmlFor="status"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+        <Box>
+          <Box as="label" marginBottom="spacing.1" display="block">
             Status
-          </label>
+          </Box>
           <select
             id="status"
             value={filterOptions.status || ""}
             onChange={handleStatusChange}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            style={{
+              padding: "8px 12px",
+              borderRadius: "4px",
+              border: "1px solid #ddd",
+              width: "100%",
+            }}
           >
             <option value="">All Statuses</option>
             <option value="pass">Pass</option>
             <option value="fail">Fail</option>
             <option value="pending">Pending</option>
           </select>
-        </div>
+        </Box>
 
-        <div>
-          <label
-            htmlFor="startDate"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+        <Box>
+          <Box as="label" marginBottom="spacing.1" display="block">
             Start Date
-          </label>
+          </Box>
           <input
             type="date"
             id="startDate"
             value={filterOptions.dateRange?.startDate || ""}
             onChange={handleStartDateChange}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            style={{
+              padding: "8px 12px",
+              borderRadius: "4px",
+              border: "1px solid #ddd",
+              width: "100%",
+            }}
           />
-        </div>
+        </Box>
 
-        <div>
-          <label
-            htmlFor="endDate"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+        <Box>
+          <Box as="label" marginBottom="spacing.1" display="block">
             End Date
-          </label>
+          </Box>
           <input
             type="date"
             id="endDate"
             value={filterOptions.dateRange?.endDate || ""}
             onChange={handleEndDateChange}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            style={{
+              padding: "8px 12px",
+              borderRadius: "4px",
+              border: "1px solid #ddd",
+              width: "100%",
+            }}
           />
-        </div>
-      </div>
+        </Box>
+      </Box>
 
-      <div className="mt-4 text-right">
-        <button
-          onClick={clearFilters}
-          className="text-sm text-gray-600 hover:text-gray-900"
-        >
+      <Box marginTop="spacing.4" textAlign="right">
+        <Button variant="tertiary" onClick={clearFilters} size="small">
           Clear Filters
-        </button>
-      </div>
-    </div>
+        </Button>
+      </Box>
+    </Box>
   );
 };
 
