@@ -30,6 +30,87 @@ thead th {
   background-color: #f9f9f9;
 }
 
+/* QC Table component styles */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  font-weight: 500;
+  background-color: #f9fafb;
+}
+
+.data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.cell-serial {
+  font-weight: 500;
+}
+
+.row-fail {
+  background-color: #FEF2F2;
+}
+
+.text-fail {
+  color: #E53E3E;
+  font-weight: 500;
+}
+
+.text-success {
+  color: #38A169;
+}
+
+.text-muted {
+  color: #718096;
+}
+
+.text-small {
+  font-size: 0.875rem;
+}
+
+.duration {
+  margin-top: 4px;
+}
+
+.details-container {
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.details-header {
+  background-color: #f9fafb;
+  padding: 12px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.test-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.test-item {
+  padding: 8px 0;
+}
+
+.test-item-border {
+  border-bottom: 1px solid #EDF2F7;
+}
+
+.pagination-container {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #E2E8F0;
+}
+
 /* Some utility classes for form elements not covered by Blade */
 .form-input,
 .form-select {

@@ -5,6 +5,7 @@ import {
   exportSingleDeviceToCSV,
   exportSingleDeviceToPDF,
 } from "../../utils/export";
+import { Box, Text, Button, Badge } from "@razorpay/blade/components";
 
 interface QCTableProps {
   data: QCReport[];
@@ -65,79 +66,50 @@ const QCTable: React.FC<QCTableProps> = ({
 
   // Status badge component
   const StatusBadge = ({ status }: { status: string }) => {
-    let bgColor = "";
+    let color;
 
     switch (status) {
       case "pass":
-        bgColor = "bg-green-100 text-green-800";
+        color = "positive";
         break;
       case "fail":
-        bgColor = "bg-red-100 text-red-800";
+        color = "negative";
         break;
       case "pending":
-        bgColor = "bg-yellow-100 text-yellow-800";
+        color = "notice";
         break;
       case "skipped":
-        bgColor = "bg-gray-100 text-gray-800";
-        break;
       default:
-        bgColor = "bg-gray-100 text-gray-800";
+        color = "neutral";
     }
 
     return (
-      <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${bgColor}`}
-      >
+      <Badge color={color}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
-      </span>
+      </Badge>
     );
   };
 
   return (
-    <div className="bg-white shadow rounded-lg overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+    <Box
+      backgroundColor="surface.background.gray.subtle"
+      elevation="lowRaised"
+      borderRadius="medium"
+      overflow="hidden"
+    >
+      <div className="table-container" style={{ overflowX: "auto" }}>
+        <table className="data-table">
+          <thead>
             <tr>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Serial Number
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Test Timestamp
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Status
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Test Results
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Error Codes
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Actions
-              </th>
+              <th>Serial Number</th>
+              <th>Test Timestamp</th>
+              <th>Status</th>
+              <th>Test Results</th>
+              <th>Error Codes</th>
+              <th>Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody>
             {data.map((report) => {
               const testSummary = getTestResultSummary(report);
               const isExpanded = expandedRow === report.id;
@@ -146,145 +118,172 @@ const QCTable: React.FC<QCTableProps> = ({
 
               return (
                 <React.Fragment key={report.id}>
-                  <tr className={hasMandatoryFailures ? "bg-red-50" : ""}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                      {report.serialNumber}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <tr className={hasMandatoryFailures ? "row-fail" : ""}>
+                    <td className="cell-serial">{report.serialNumber}</td>
+                    <td>
                       {dayjs(report.testTimestamp).format("YYYY-MM-DD HH:mm")}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td>
                       <StatusBadge status={report.status} />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <div className="flex flex-col">
+                    <td>
+                      <Box display="flex" flexDirection="column">
                         <div
-                          className={`${
-                            hasMandatoryFailures
-                              ? "text-red-800 font-medium"
-                              : "text-gray-900"
-                          }`}
+                          className={hasMandatoryFailures ? "text-fail" : ""}
                         >
                           Mandatory: {testSummary.mandatory.passed}/
                           {testSummary.mandatory.total}
                         </div>
-                        <div className="text-gray-500">
+                        <div className="text-muted text-small">
                           Optional: {testSummary.optional.passed}/
                           {testSummary.optional.total}
                         </div>
-                      </div>
+                      </Box>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td>
                       {report.errorCodes.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
+                        <Box display="flex" flexWrap="wrap" gap="spacing.1">
                           {report.errorCodes.map((code) => (
-                            <span
-                              key={code}
-                              className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800"
-                            >
+                            <Badge key={code} color="negative" size="small">
                               {code}
-                            </span>
+                            </Badge>
                           ))}
-                        </div>
+                        </Box>
                       ) : (
-                        <span className="text-green-600">None</span>
+                        <div className="text-success">None</div>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2 flex items-center">
-                      <button
-                        onClick={() => exportSingleDeviceToCSV(report)}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="Download CSV"
-                      >
-                        CSV
-                      </button>
-                      <button
-                        onClick={() => exportSingleDeviceToPDF(report)}
-                        className="text-green-600 hover:text-green-900"
-                        title="Download PDF"
-                      >
-                        PDF
-                      </button>
-                      <button
-                        onClick={() => toggleRowExpand(report.id)}
-                        className="text-indigo-600 hover:text-indigo-900 ml-2"
-                      >
-                        {isExpanded ? "Hide Details" : "Show Details"}
-                      </button>
+                    <td>
+                      <Box display="flex" gap="spacing.2">
+                        <Button
+                          onClick={() => exportSingleDeviceToCSV(report)}
+                          variant="tertiary"
+                          size="small"
+                        >
+                          CSV
+                        </Button>
+                        <Button
+                          onClick={() => exportSingleDeviceToPDF(report)}
+                          variant="tertiary"
+                          size="small"
+                        >
+                          PDF
+                        </Button>
+                        <Button
+                          onClick={() => toggleRowExpand(report.id)}
+                          variant="tertiary"
+                          size="small"
+                        >
+                          {isExpanded ? "Hide Details" : "Show Details"}
+                        </Button>
+                      </Box>
                     </td>
                   </tr>
 
                   {isExpanded && (
                     <tr>
-                      <td colSpan={6} className="px-6 py-4">
-                        <div className="border rounded-lg overflow-hidden">
-                          <div className="bg-gray-50 px-4 py-2 border-b">
-                            <h4 className="text-sm font-medium text-gray-900">
+                      <td colSpan={6}>
+                        <div className="details-container">
+                          <div className="details-header">
+                            <Text weight="medium" size="medium">
                               Detailed Test Results
-                            </h4>
+                            </Text>
                           </div>
-                          <div className="p-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              <div>
-                                <h5 className="text-sm font-medium text-gray-900 mb-2">
+                          <Box padding="spacing.4">
+                            <Box
+                              display="grid"
+                              gridTemplateColumns={{
+                                base: "1fr",
+                                s: "1fr 1fr",
+                              }}
+                              gap="spacing.4"
+                            >
+                              <Box>
+                                <Text weight="medium" marginBottom="spacing.2">
                                   Mandatory Tests
-                                </h5>
-                                <ul className="divide-y divide-gray-200">
+                                </Text>
+                                <div className="test-list">
                                   {report.testResults
                                     .filter(
                                       (test) => test.testType === "mandatory"
                                     )
-                                    .map((test) => (
-                                      <li key={test.id} className="py-2">
-                                        <div className="flex justify-between">
-                                          <span className="text-sm font-medium">
-                                            {test.name}
+                                    .map((test, index, arr) => (
+                                      <div
+                                        key={test.id}
+                                        className={`test-item ${
+                                          index < arr.length - 1
+                                            ? "test-item-border"
+                                            : ""
+                                        }`}
+                                      >
+                                        <Box
+                                          display="flex"
+                                          justifyContent="space-between"
+                                          alignItems="center"
+                                        >
+                                          <Box>
+                                            <Text weight="medium">
+                                              {test.name}
+                                            </Text>
                                             {test.status === "fail" && (
-                                              <span className="ml-2 text-xs text-red-600">
-                                                - {test.errorMessage}
-                                              </span>
+                                              <div className="text-fail text-small">
+                                                {test.errorMessage}
+                                              </div>
                                             )}
-                                          </span>
+                                          </Box>
                                           <StatusBadge status={test.status} />
-                                        </div>
-                                        <div className="text-xs text-gray-500 mt-1">
+                                        </Box>
+                                        <div className="text-muted text-small duration">
                                           Duration: {test.duration}s
                                         </div>
-                                      </li>
+                                      </div>
                                     ))}
-                                </ul>
-                              </div>
-                              <div>
-                                <h5 className="text-sm font-medium text-gray-900 mb-2">
+                                </div>
+                              </Box>
+                              <Box>
+                                <Text weight="medium" marginBottom="spacing.2">
                                   Optional Tests
-                                </h5>
-                                <ul className="divide-y divide-gray-200">
+                                </Text>
+                                <div className="test-list">
                                   {report.testResults
                                     .filter(
                                       (test) => test.testType === "optional"
                                     )
-                                    .map((test) => (
-                                      <li key={test.id} className="py-2">
-                                        <div className="flex justify-between">
-                                          <span className="text-sm font-medium">
-                                            {test.name}
+                                    .map((test, index, arr) => (
+                                      <div
+                                        key={test.id}
+                                        className={`test-item ${
+                                          index < arr.length - 1
+                                            ? "test-item-border"
+                                            : ""
+                                        }`}
+                                      >
+                                        <Box
+                                          display="flex"
+                                          justifyContent="space-between"
+                                          alignItems="center"
+                                        >
+                                          <Box>
+                                            <Text weight="medium">
+                                              {test.name}
+                                            </Text>
                                             {test.status === "fail" && (
-                                              <span className="ml-2 text-xs text-red-600">
-                                                - {test.errorMessage}
-                                              </span>
+                                              <div className="text-fail text-small">
+                                                {test.errorMessage}
+                                              </div>
                                             )}
-                                          </span>
+                                          </Box>
                                           <StatusBadge status={test.status} />
-                                        </div>
-                                        <div className="text-xs text-gray-500 mt-1">
+                                        </Box>
+                                        <div className="text-muted text-small duration">
                                           Duration: {test.duration}s
                                         </div>
-                                      </li>
+                                      </div>
                                     ))}
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
+                                </div>
+                              </Box>
+                            </Box>
+                          </Box>
                         </div>
                       </td>
                     </tr>
@@ -297,178 +296,109 @@ const QCTable: React.FC<QCTableProps> = ({
       </div>
 
       {/* Pagination */}
-      <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-        <div className="flex-1 flex justify-between sm:hidden">
-          <button
+      <div className="pagination-container">
+        {/* Mobile pagination */}
+        <Box
+          display={{ base: "flex", s: "none" }}
+          justifyContent="space-between"
+          width="100%"
+        >
+          <Button
             onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
-            className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-              currentPage === 1
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-white text-gray-700 hover:bg-gray-50"
-            }`}
+            isDisabled={currentPage === 1}
+            variant="tertiary"
+            size="small"
           >
             Previous
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-            disabled={currentPage === totalPages}
-            className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-              currentPage === totalPages
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-white text-gray-700 hover:bg-gray-50"
-            }`}
+            isDisabled={currentPage === totalPages}
+            variant="tertiary"
+            size="small"
           >
             Next
-          </button>
-        </div>
+          </Button>
+        </Box>
 
-        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm text-gray-700">
-              Showing{" "}
-              <span className="font-medium">
-                {Math.min((currentPage - 1) * pageSize + 1, totalItems)}
-              </span>{" "}
-              to{" "}
-              <span className="font-medium">
-                {Math.min(currentPage * pageSize, totalItems)}
-              </span>{" "}
-              of <span className="font-medium">{totalItems}</span> results
-            </p>
-          </div>
+        {/* Desktop pagination */}
+        <Box
+          display={{ base: "none", s: "flex" }}
+          alignItems="center"
+          justifyContent="space-between"
+          width="100%"
+        >
+          <Text size="small">
+            Showing{" "}
+            <Text as="span" weight="medium" size="small">
+              {Math.min((currentPage - 1) * pageSize + 1, totalItems)}
+            </Text>{" "}
+            to{" "}
+            <Text as="span" weight="medium" size="small">
+              {Math.min(currentPage * pageSize, totalItems)}
+            </Text>{" "}
+            of{" "}
+            <Text as="span" weight="medium" size="small">
+              {totalItems}
+            </Text>{" "}
+            results
+          </Text>
 
-          <div>
-            <nav
-              className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
-              aria-label="Pagination"
+          <Box display="flex" alignItems="center" gap="spacing.1">
+            <Button
+              onClick={() => onPageChange(1)}
+              isDisabled={currentPage === 1}
+              variant="tertiary"
+              size="small"
+              aria-label="First page"
             >
-              <button
-                onClick={() => onPageChange(1)}
-                disabled={currentPage === 1}
-                className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
-                  currentPage === 1
-                    ? "text-gray-300 cursor-not-allowed"
-                    : "text-gray-500 hover:bg-gray-50"
-                }`}
-              >
-                <span className="sr-only">First</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M15.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 010 1.414z"
-                    clipRule="evenodd"
-                  />
-                  <path
-                    fillRule="evenodd"
-                    d="M9.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L5.414 10l4.293 4.293a1 1 0 010 1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-              <button
-                onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className={`relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium ${
-                  currentPage === 1
-                    ? "text-gray-300 cursor-not-allowed"
-                    : "text-gray-500 hover:bg-gray-50"
-                }`}
-              >
-                <span className="sr-only">Previous</span>
-                <svg
-                  className="h-5 w-5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
+              ⟨⟨
+            </Button>
+            <Button
+              onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+              isDisabled={currentPage === 1}
+              variant="tertiary"
+              size="small"
+              aria-label="Previous page"
+            >
+              ⟨
+            </Button>
 
-              {pageNumbers.map((number) => (
-                <button
-                  key={number}
-                  onClick={() => onPageChange(number)}
-                  className={`relative inline-flex items-center px-4 py-2 border ${
-                    currentPage === number
-                      ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
-                      : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                  } text-sm font-medium`}
-                >
-                  {number}
-                </button>
-              ))}
+            {pageNumbers.map((number) => (
+              <Button
+                key={number}
+                onClick={() => onPageChange(number)}
+                variant={currentPage === number ? "primary" : "tertiary"}
+                size="small"
+              >
+                {`${number}`}
+              </Button>
+            ))}
 
-              <button
-                onClick={() =>
-                  onPageChange(Math.min(totalPages, currentPage + 1))
-                }
-                disabled={currentPage === totalPages}
-                className={`relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium ${
-                  currentPage === totalPages
-                    ? "text-gray-300 cursor-not-allowed"
-                    : "text-gray-500 hover:bg-gray-50"
-                }`}
-              >
-                <span className="sr-only">Next</span>
-                <svg
-                  className="h-5 w-5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-              <button
-                onClick={() => onPageChange(totalPages)}
-                disabled={currentPage === totalPages}
-                className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
-                  currentPage === totalPages
-                    ? "text-gray-300 cursor-not-allowed"
-                    : "text-gray-500 hover:bg-gray-50"
-                }`}
-              >
-                <span className="sr-only">Last</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10.293 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L6.414 10l3.293 3.293a1 1 0 010 1.414z"
-                    clipRule="evenodd"
-                  />
-                  <path
-                    fillRule="evenodd"
-                    d="M4.293 15.707a1 1 0 001.414 0l5-5a1 1 0 000-1.414l-5-5a1 1 0 00-1.414 1.414L8.586 10l-4.293 4.293a1 1 0 000 1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-            </nav>
-          </div>
-        </div>
+            <Button
+              onClick={() =>
+                onPageChange(Math.min(totalPages, currentPage + 1))
+              }
+              isDisabled={currentPage === totalPages}
+              variant="tertiary"
+              size="small"
+              aria-label="Next page"
+            >
+              ⟩
+            </Button>
+            <Button
+              onClick={() => onPageChange(totalPages)}
+              isDisabled={currentPage === totalPages}
+              variant="tertiary"
+              size="small"
+              aria-label="Last page"
+            >
+              ⟩⟩
+            </Button>
+          </Box>
+        </Box>
       </div>
-    </div>
+    </Box>
   );
 };
 
