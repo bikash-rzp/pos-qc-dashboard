@@ -14,6 +14,17 @@ export interface TestResult {
   errorMessage?: string;
   testType: "mandatory" | "optional";
   duration: number;
+  retries?: TestRetry[];
+}
+
+export interface TestRetry {
+  id: string;
+  attemptNumber: number;
+  status: "pass" | "fail" | "skipped";
+  errorMessage?: string;
+  duration: number;
+  timestamp: string;
+  details?: string;
 }
 
 export interface FilterOptions {

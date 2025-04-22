@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { QCReport } from "../../types/qc";
+import { QCReport, TestResult } from "../../types/qc";
 import dayjs from "dayjs";
 import {
   exportSingleDeviceToCSV,
@@ -23,21 +23,21 @@ const QCTable: React.FC<QCTableProps> = ({
   onPageChange,
 }) => {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [expandedTests, setExpandedTests] = useState<Record<string, boolean>>({});
 
   const toggleRowExpand = (id: string) => {
     setExpandedRow(expandedRow === id ? null : id);
   };
 
+  const toggleTestExpand = (testId: string) => {
+    setExpandedTests(prev => ({
+      ...prev,
+      [testId]: !prev[testId]
+    }));
+  };
+
   // Calculate pagination
   const totalPages = Math.ceil(totalItems / pageSize);
-  const pageNumbers = [];
-
-  const startPage = Math.max(1, currentPage - 2);
-  const endPage = Math.min(totalPages, currentPage + 2);
-
-  for (let i = startPage; i <= endPage; i++) {
-    pageNumbers.push(i);
-  }
 
   // Calculate test result summary
   const getTestResultSummary = (report: QCReport) => {
@@ -90,6 +90,200 @@ const QCTable: React.FC<QCTableProps> = ({
     );
   };
 
+  // Render test retries
+  const renderTestRetries = (test: TestResult) => {
+    if (!test.retries || test.retries.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="test-retries">
+        <Text weight="medium" size="small" marginBottom="spacing.2">
+          Retry Attempts ({test.retries.length})
+        </Text>
+        <div className="retries-list">
+          {test.retries.map((retry) => (
+            <div key={retry.id} className="retry-item">
+              <div className="retry-header">
+                <Text size="small" weight="medium">
+                  Attempt #{retry.attemptNumber} - {dayjs(retry.timestamp).format("HH:mm:ss")}
+                </Text>
+                <StatusBadge status={retry.status} />
+              </div>
+              {retry.errorMessage && (
+                <div className="retry-error">{retry.errorMessage}</div>
+              )}
+              <div className="retry-duration">
+                Duration: {retry.duration}s
+              </div>
+              {retry.details && (
+                <div className="retry-details">
+                  <pre>{retry.details}</pre>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Render a single test item with expandable retries
+  const renderTestItem = (test: TestResult) => {
+    const hasRetries = test.retries && test.retries.length > 0;
+    const isExpanded = expandedTests[test.id] || false;
+
+    return (
+      <div key={test.id} className="test-item">
+        <div className="test-header">
+          <Box display="flex" flexDirection="column" gap="spacing.1" flex="1">
+            <Box display="flex" alignItems="center" gap="spacing.2">
+              <Text weight="medium">{test.name}</Text>
+              {hasRetries && (
+                <div
+                  className="test-expand-toggle"
+                  onClick={() => toggleTestExpand(test.id)}
+                >
+                  <span className="toggle-icon">
+                    {isExpanded ? "▼" : "▶"}
+                  </span>
+                  <span className="retry-count">{test.retries!.length}</span>
+                </div>
+              )}
+            </Box>
+            {test.status === "fail" && test.errorMessage && (
+              <div className="test-error">{test.errorMessage}</div>
+            )}
+          </Box>
+          <StatusBadge status={test.status} />
+        </div>
+        <div className="test-duration">
+          Duration: {test.duration}s
+        </div>
+
+        {isExpanded && renderTestRetries(test)}
+      </div>
+    );
+  };
+
+  // Render expanded details
+  const renderExpandedDetails = (report: QCReport) => {
+    if (expandedRow !== report.id) return null;
+
+    return (
+      <tr>
+        <td colSpan={6}>
+          <Box
+            padding="spacing.4"
+            backgroundColor="surface.background.gray.subtle"
+          >
+            <Text weight="medium" marginBottom="spacing.4">
+              Detailed Test Results
+            </Text>
+
+            <div className="tests-container">
+              <div className="test-section">
+                <Text weight="medium" marginBottom="spacing.3">
+                  Mandatory Tests
+                </Text>
+                <div className="test-list">
+                  {report.testResults
+                    .filter((test) => test.testType === "mandatory")
+                    .map(renderTestItem)}
+                </div>
+              </div>
+
+              <div className="test-section">
+                <Text weight="medium" marginBottom="spacing.3">
+                  Optional Tests
+                </Text>
+                <div className="test-list">
+                  {report.testResults
+                    .filter((test) => test.testType === "optional")
+                    .map(renderTestItem)}
+                </div>
+              </div>
+            </div>
+          </Box>
+        </td>
+      </tr>
+    );
+  };
+
+  // Custom pagination component
+  const renderPagination = () => {
+    const pageNumbers = [];
+    const maxPageButtons = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
+    const endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
+
+    if (endPage - startPage + 1 < maxPageButtons) {
+      startPage = Math.max(1, endPage - maxPageButtons + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+
+    return (
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        gap="spacing.2"
+      >
+        <Button
+          variant="tertiary"
+          size="small"
+          onClick={() => onPageChange(1)}
+          isDisabled={currentPage === 1}
+          aria-label="First page"
+        >
+          ⟨⟨
+        </Button>
+        <Button
+          variant="tertiary"
+          size="small"
+          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+          isDisabled={currentPage === 1}
+          aria-label="Previous page"
+        >
+          ⟨
+        </Button>
+
+        {pageNumbers.map((number) => (
+          <Button
+            key={number}
+            variant={currentPage === number ? "primary" : "tertiary"}
+            size="small"
+            onClick={() => onPageChange(number)}
+          >
+            {`${number}`}
+          </Button>
+        ))}
+
+        <Button
+          variant="tertiary"
+          size="small"
+          onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+          isDisabled={currentPage === totalPages}
+          aria-label="Next page"
+        >
+          ⟩
+        </Button>
+        <Button
+          variant="tertiary"
+          size="small"
+          onClick={() => onPageChange(totalPages)}
+          isDisabled={currentPage === totalPages}
+          aria-label="Last page"
+        >
+          ⟩⟩
+        </Button>
+      </Box>
+    );
+  };
+
   return (
     <Box
       backgroundColor="surface.background.gray.subtle"
@@ -97,8 +291,8 @@ const QCTable: React.FC<QCTableProps> = ({
       borderRadius="medium"
       overflow="hidden"
     >
-      <div className="table-container" style={{ overflowX: "auto" }}>
-        <table className="data-table">
+      <div className="table-wrapper">
+        <table className="blade-table">
           <thead>
             <tr>
               <th>Serial Number</th>
@@ -112,14 +306,15 @@ const QCTable: React.FC<QCTableProps> = ({
           <tbody>
             {data.map((report) => {
               const testSummary = getTestResultSummary(report);
-              const isExpanded = expandedRow === report.id;
               const hasMandatoryFailures =
                 testSummary.mandatory.passed < testSummary.mandatory.total;
 
               return (
                 <React.Fragment key={report.id}>
-                  <tr className={hasMandatoryFailures ? "row-fail" : ""}>
-                    <td className="cell-serial">{report.serialNumber}</td>
+                  <tr className={hasMandatoryFailures ? "row-highlight" : ""}>
+                    <td>
+                      <Text weight="medium">{report.serialNumber}</Text>
+                    </td>
                     <td>
                       {dayjs(report.testTimestamp).format("YYYY-MM-DD HH:mm")}
                     </td>
@@ -127,18 +322,18 @@ const QCTable: React.FC<QCTableProps> = ({
                       <StatusBadge status={report.status} />
                     </td>
                     <td>
-                      <Box display="flex" flexDirection="column">
+                      <div className="test-summary">
                         <div
-                          className={hasMandatoryFailures ? "text-fail" : ""}
+                          className={hasMandatoryFailures ? "text-error" : ""}
                         >
                           Mandatory: {testSummary.mandatory.passed}/
                           {testSummary.mandatory.total}
                         </div>
-                        <div className="text-muted text-small">
+                        <div className="text-subtle text-small">
                           Optional: {testSummary.optional.passed}/
                           {testSummary.optional.total}
                         </div>
-                      </Box>
+                      </div>
                     </td>
                     <td>
                       {report.errorCodes.length > 0 ? (
@@ -174,120 +369,12 @@ const QCTable: React.FC<QCTableProps> = ({
                           variant="tertiary"
                           size="small"
                         >
-                          {isExpanded ? "Hide Details" : "Show Details"}
+                          {expandedRow === report.id ? "Hide" : "Details"}
                         </Button>
                       </Box>
                     </td>
                   </tr>
-
-                  {isExpanded && (
-                    <tr>
-                      <td colSpan={6}>
-                        <div className="details-container">
-                          <div className="details-header">
-                            <Text weight="medium" size="medium">
-                              Detailed Test Results
-                            </Text>
-                          </div>
-                          <Box padding="spacing.4">
-                            <Box
-                              display="grid"
-                              gridTemplateColumns={{
-                                base: "1fr",
-                                s: "1fr 1fr",
-                              }}
-                              gap="spacing.4"
-                            >
-                              <Box>
-                                <Text weight="medium" marginBottom="spacing.2">
-                                  Mandatory Tests
-                                </Text>
-                                <div className="test-list">
-                                  {report.testResults
-                                    .filter(
-                                      (test) => test.testType === "mandatory"
-                                    )
-                                    .map((test, index, arr) => (
-                                      <div
-                                        key={test.id}
-                                        className={`test-item ${
-                                          index < arr.length - 1
-                                            ? "test-item-border"
-                                            : ""
-                                        }`}
-                                      >
-                                        <Box
-                                          display="flex"
-                                          justifyContent="space-between"
-                                          alignItems="center"
-                                        >
-                                          <Box>
-                                            <Text weight="medium">
-                                              {test.name}
-                                            </Text>
-                                            {test.status === "fail" && (
-                                              <div className="text-fail text-small">
-                                                {test.errorMessage}
-                                              </div>
-                                            )}
-                                          </Box>
-                                          <StatusBadge status={test.status} />
-                                        </Box>
-                                        <div className="text-muted text-small duration">
-                                          Duration: {test.duration}s
-                                        </div>
-                                      </div>
-                                    ))}
-                                </div>
-                              </Box>
-                              <Box>
-                                <Text weight="medium" marginBottom="spacing.2">
-                                  Optional Tests
-                                </Text>
-                                <div className="test-list">
-                                  {report.testResults
-                                    .filter(
-                                      (test) => test.testType === "optional"
-                                    )
-                                    .map((test, index, arr) => (
-                                      <div
-                                        key={test.id}
-                                        className={`test-item ${
-                                          index < arr.length - 1
-                                            ? "test-item-border"
-                                            : ""
-                                        }`}
-                                      >
-                                        <Box
-                                          display="flex"
-                                          justifyContent="space-between"
-                                          alignItems="center"
-                                        >
-                                          <Box>
-                                            <Text weight="medium">
-                                              {test.name}
-                                            </Text>
-                                            {test.status === "fail" && (
-                                              <div className="text-fail text-small">
-                                                {test.errorMessage}
-                                              </div>
-                                            )}
-                                          </Box>
-                                          <StatusBadge status={test.status} />
-                                        </Box>
-                                        <div className="text-muted text-small duration">
-                                          Duration: {test.duration}s
-                                        </div>
-                                      </div>
-                                    ))}
-                                </div>
-                              </Box>
-                            </Box>
-                          </Box>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
+                  {renderExpandedDetails(report)}
                 </React.Fragment>
               );
             })}
@@ -295,109 +382,9 @@ const QCTable: React.FC<QCTableProps> = ({
         </table>
       </div>
 
-      {/* Pagination */}
-      <div className="pagination-container">
-        {/* Mobile pagination */}
-        <Box
-          display={{ base: "flex", s: "none" }}
-          justifyContent="space-between"
-          width="100%"
-        >
-          <Button
-            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-            isDisabled={currentPage === 1}
-            variant="tertiary"
-            size="small"
-          >
-            Previous
-          </Button>
-          <Button
-            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-            isDisabled={currentPage === totalPages}
-            variant="tertiary"
-            size="small"
-          >
-            Next
-          </Button>
-        </Box>
-
-        {/* Desktop pagination */}
-        <Box
-          display={{ base: "none", s: "flex" }}
-          alignItems="center"
-          justifyContent="space-between"
-          width="100%"
-        >
-          <Text size="small">
-            Showing{" "}
-            <Text as="span" weight="medium" size="small">
-              {Math.min((currentPage - 1) * pageSize + 1, totalItems)}
-            </Text>{" "}
-            to{" "}
-            <Text as="span" weight="medium" size="small">
-              {Math.min(currentPage * pageSize, totalItems)}
-            </Text>{" "}
-            of{" "}
-            <Text as="span" weight="medium" size="small">
-              {totalItems}
-            </Text>{" "}
-            results
-          </Text>
-
-          <Box display="flex" alignItems="center" gap="spacing.1">
-            <Button
-              onClick={() => onPageChange(1)}
-              isDisabled={currentPage === 1}
-              variant="tertiary"
-              size="small"
-              aria-label="First page"
-            >
-              ⟨⟨
-            </Button>
-            <Button
-              onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-              isDisabled={currentPage === 1}
-              variant="tertiary"
-              size="small"
-              aria-label="Previous page"
-            >
-              ⟨
-            </Button>
-
-            {pageNumbers.map((number) => (
-              <Button
-                key={number}
-                onClick={() => onPageChange(number)}
-                variant={currentPage === number ? "primary" : "tertiary"}
-                size="small"
-              >
-                {`${number}`}
-              </Button>
-            ))}
-
-            <Button
-              onClick={() =>
-                onPageChange(Math.min(totalPages, currentPage + 1))
-              }
-              isDisabled={currentPage === totalPages}
-              variant="tertiary"
-              size="small"
-              aria-label="Next page"
-            >
-              ⟩
-            </Button>
-            <Button
-              onClick={() => onPageChange(totalPages)}
-              isDisabled={currentPage === totalPages}
-              variant="tertiary"
-              size="small"
-              aria-label="Last page"
-            >
-              ⟩⟩
-            </Button>
-          </Box>
-        </Box>
-      </div>
+      <Box padding="spacing.4" display="flex" justifyContent="center">
+        {renderPagination()}
+      </Box>
     </Box>
   );
 };

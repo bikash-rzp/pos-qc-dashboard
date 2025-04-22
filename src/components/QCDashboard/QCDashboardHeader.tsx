@@ -68,17 +68,10 @@ const QCDashboardHeader: React.FC<QCDashboardHeaderProps> = ({
       <Box
         display="flex"
         flexDirection={{ base: "column", s: "row" }}
-        justifyContent="space-between"
+        justifyContent="flex-end"
         alignItems={{ base: "flex-start", s: "center" }}
         marginBottom="spacing.6"
       >
-        <Heading
-          size="xlarge"
-          marginBottom={{ base: "spacing.4", s: "spacing.0" }}
-        >
-          POS Device QC Dashboard
-        </Heading>
-
         <Box display="flex" gap="spacing.3">
           <Button variant="primary" onClick={onExportCSV}>
             Export CSV
