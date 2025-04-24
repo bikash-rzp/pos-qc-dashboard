@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { Box } from "@razorpay/blade/components";
@@ -8,7 +8,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
+    <HashRouter>
       <Box padding="spacing.8">
         <Routes>
           <Route path="/" element={<Index />} />
@@ -16,7 +16,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Box>
-    </BrowserRouter>
+    </HashRouter>
   </QueryClientProvider>
 );
 
