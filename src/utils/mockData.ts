@@ -2,9 +2,15 @@ import { QCReport, TestRetry } from "../types/qc";
 import dayjs from "dayjs";
 
 // Generate random test retries
-const generateTestRetries = (testName: string, finalStatus: "pass" | "fail" | "skipped"): TestRetry[] => {
+const generateTestRetries = (
+  testName: string,
+  finalStatus: "pass" | "fail" | "skipped"
+): TestRetry[] => {
   // Only generate retries for failed tests or with a small chance for passed tests
-  if (finalStatus === 'skipped' || (finalStatus === 'pass' && Math.random() > 0.3)) {
+  if (
+    finalStatus === "skipped" ||
+    (finalStatus === "pass" && Math.random() > 0.3)
+  ) {
     return [];
   }
 
@@ -20,10 +26,14 @@ const generateTestRetries = (testName: string, finalStatus: "pass" | "fail" | "s
       id: `retry-${Math.random().toString(36).substring(2, 9)}`,
       attemptNumber: i + 1,
       status: status as "pass" | "fail" | "skipped",
-      errorMessage: status === "fail" ? `${testName} failed on attempt #${i + 1}` : undefined,
+      errorMessage:
+        status === "fail"
+          ? `${testName} failed on attempt #${i + 1}`
+          : undefined,
       duration: Math.floor(Math.random() * 20) + 5,
       timestamp: dayjs().subtract(minutesAgo, "minute").toISOString(),
-      details: status === "fail" ? generateTestDetails(testName, i + 1) : undefined
+      details:
+        status === "fail" ? generateTestDetails(testName, i + 1) : undefined,
     });
   }
 
@@ -43,10 +53,12 @@ const generateTestDetails = (testName: string, attempt: number): string => {
   }
 
   logLines.push(`[ERROR] Test failed: timeout waiting for response`);
-  logLines.push(`[ERROR] Connection lost during ${testName.toLowerCase()} operation`);
+  logLines.push(
+    `[ERROR] Connection lost during ${testName.toLowerCase()} operation`
+  );
   logLines.push(`[INFO] Test ${testName} complete with status: FAILED`);
 
-  return logLines.join('\n');
+  return logLines.join("\n");
 };
 
 // Generate random test results for a device
@@ -76,7 +88,7 @@ const generateTestResults = (pass: boolean) => {
           : undefined,
       testType: isMandatory ? ("mandatory" as const) : ("optional" as const),
       duration: Math.floor(Math.random() * 60) + 10,
-      retries: generateTestRetries(name, status as "pass" | "fail" | "skipped")
+      retries: generateTestRetries(name, status as "pass" | "fail" | "skipped"),
     };
   });
 };
@@ -154,15 +166,21 @@ export const filterQCData = (
     if (status && report.status !== status) return false;
 
     // Filter by date range
-    if (dateRange) {
+    if (dateRange?.startDate || dateRange?.endDate) {
       const reportDate = dayjs(report.testTimestamp);
-      if (
-        dateRange.startDate &&
-        reportDate.isBefore(dayjs(dateRange.startDate))
-      )
+      const startDate = dateRange.startDate
+        ? dayjs(dateRange.startDate).startOf("day")
+        : null;
+      const endDate = dateRange.endDate
+        ? dayjs(dateRange.endDate).endOf("day")
+        : null;
+
+      if (startDate && reportDate.isBefore(startDate)) {
         return false;
-      if (dateRange.endDate && reportDate.isAfter(dayjs(dateRange.endDate)))
+      }
+      if (endDate && reportDate.isAfter(endDate)) {
         return false;
+      }
     }
 
     // Filter by search term (search in serial number)
