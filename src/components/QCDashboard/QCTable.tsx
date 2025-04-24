@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import {
   exportSingleDeviceToCSV,
   exportSingleDeviceToPDF,
+  exportSingleDeviceToDetailedCSV,
 } from "../../utils/export";
 import { Box, Text, Button, Badge } from "@razorpay/blade/components";
 
@@ -23,16 +24,18 @@ const QCTable: React.FC<QCTableProps> = ({
   onPageChange,
 }) => {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
-  const [expandedTests, setExpandedTests] = useState<Record<string, boolean>>({});
+  const [expandedTests, setExpandedTests] = useState<Record<string, boolean>>(
+    {}
+  );
 
   const toggleRowExpand = (id: string) => {
     setExpandedRow(expandedRow === id ? null : id);
   };
 
   const toggleTestExpand = (testId: string) => {
-    setExpandedTests(prev => ({
+    setExpandedTests((prev) => ({
       ...prev,
-      [testId]: !prev[testId]
+      [testId]: !prev[testId],
     }));
   };
 
@@ -84,7 +87,7 @@ const QCTable: React.FC<QCTableProps> = ({
     }
 
     return (
-      <Badge color={color}>
+      <Badge color={color} size="large">
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </Badge>
     );
@@ -106,16 +109,15 @@ const QCTable: React.FC<QCTableProps> = ({
             <div key={retry.id} className="retry-item">
               <div className="retry-header">
                 <Text size="small" weight="medium">
-                  Attempt #{retry.attemptNumber} - {dayjs(retry.timestamp).format("HH:mm:ss")}
+                  Attempt #{retry.attemptNumber} -{" "}
+                  {dayjs(retry.timestamp).format("HH:mm:ss")}
                 </Text>
                 <StatusBadge status={retry.status} />
               </div>
               {retry.errorMessage && (
                 <div className="retry-error">{retry.errorMessage}</div>
               )}
-              <div className="retry-duration">
-                Duration: {retry.duration}s
-              </div>
+              <div className="retry-duration">Duration: {retry.duration}s</div>
               {retry.details && (
                 <div className="retry-details">
                   <pre>{retry.details}</pre>
@@ -145,7 +147,7 @@ const QCTable: React.FC<QCTableProps> = ({
                   onClick={() => toggleTestExpand(test.id)}
                 >
                   <span className="toggle-icon">
-                    {isExpanded ? "▼" : "▶"}
+                    {isExpanded ? "Logs ▼" : "Logs ▶"}
                   </span>
                   <span className="retry-count">{test.retries!.length}</span>
                 </div>
@@ -157,9 +159,7 @@ const QCTable: React.FC<QCTableProps> = ({
           </Box>
           <StatusBadge status={test.status} />
         </div>
-        <div className="test-duration">
-          Duration: {test.duration}s
-        </div>
+        <div className="test-duration">Duration: {test.duration}s</div>
 
         {isExpanded && renderTestRetries(test)}
       </div>
@@ -177,13 +177,13 @@ const QCTable: React.FC<QCTableProps> = ({
             padding="spacing.4"
             backgroundColor="surface.background.gray.subtle"
           >
-            <Text weight="medium" marginBottom="spacing.4">
+            <Text weight="semibold" size="large" marginBottom="spacing.4">
               Detailed Test Results
             </Text>
 
             <div className="tests-container">
               <div className="test-section">
-                <Text weight="medium" marginBottom="spacing.3">
+                <Text weight="semibold" size="medium" marginBottom="spacing.3">
                   Mandatory Tests
                 </Text>
                 <div className="test-list">
@@ -339,17 +339,17 @@ const QCTable: React.FC<QCTableProps> = ({
                       {report.errorCodes.length > 0 ? (
                         <Box display="flex" flexWrap="wrap" gap="spacing.1">
                           {report.errorCodes.map((code) => (
-                            <Badge key={code} color="negative" size="small">
+                            <Badge key={code} color="negative" size="large">
                               {code}
                             </Badge>
                           ))}
                         </Box>
                       ) : (
-                        <div className="text-success">None</div>
+                        <div className="text-success">{""}</div>
                       )}
                     </td>
                     <td>
-                      <Box display="flex" gap="spacing.2">
+                      <Box display="flex" gap="spacing.2" flexWrap="wrap">
                         <Button
                           onClick={() => exportSingleDeviceToCSV(report)}
                           variant="tertiary"
@@ -364,6 +364,13 @@ const QCTable: React.FC<QCTableProps> = ({
                         >
                           PDF
                         </Button>
+                        {/* <Button
+                          onClick={() => exportSingleDeviceToDetailedCSV(report)}
+                          variant="tertiary"
+                          size="small"
+                        >
+                          Detailed CSV
+                        </Button> */}
                         <Button
                           onClick={() => toggleRowExpand(report.id)}
                           variant="tertiary"

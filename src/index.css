@@ -228,8 +228,9 @@ thead th {
 
 /* Test retries styles */
 .test-expand-toggle {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
   cursor: pointer;
   background-color: #EDF2F7;
   border-radius: 12px;
